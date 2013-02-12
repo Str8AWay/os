@@ -3,6 +3,11 @@
  * @provides ctxsw
  *
  * COSC 3250 / COEN 4820 Assignment 4
+ *
+ * Modified by:
+ * Kaleb Breault
+ * and
+ * Jason Laqua
  */
 /* Embedded XINU, Copyright (C) 2010.  All rights reserved. */
 
@@ -44,7 +49,7 @@ ctxsw:
 	sw	gp,CTX_S8(sp)
 	sw	fp,CTX_S9(sp)
         // TODO: Save outgoing stack pointer.
-	sw	sp,(a0)
+	sw	sp,0(a0)
 	// TODO: Load incoming stack pointer.
 	lw	sp,(a1)
         // TODO: Restore callee-save ("non-volatile") registers.
@@ -60,6 +65,10 @@ ctxsw:
 	lw	s7,CTX_S7(sp)
 	lw	gp,CTX_S8(sp)
 	lw	fp,CTX_S9(sp)
+	lw	a3,CONTEXT+12(sp)
+	lw	a2,CONTEXT+8(sp)
+	lw	a1,CONTEXT+4(sp)
+	lw	a0,CONTEXT+0(sp)
 	addiu	sp,sp,CONTEXT
 	// TODO: Jump to next function.
 	jr jp

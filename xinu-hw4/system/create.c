@@ -3,6 +3,10 @@
  * @provides create, newpid, userret
  *
  * COSC 3250 / COEN 4820 Assignment 4
+ * Modified by
+ * Kaleb Breault
+ * and 
+ * Jason Laqua
  */
 /* Embedded XINU, Copyright (C) 2010.  All rights reserved. */
   
@@ -54,10 +58,10 @@ syscall	create(void *procaddr, ulong ssize,
 	strncpy(ppcb->name, name, sizeof(name)+1);
 	ppcb->stklen = ssize;
 	ppcb->stkbase = saddr - ssize/sizeof(ulong);
-	kprintf("name: %s\r\n",ppcb->name);
-	kprintf("&procaddr: 0x%x\r\n", procaddr);
-	kprintf("ppcb->stklen: %d\r\n", ppcb->stklen);
-	kprintf("ppcb->stkbase: 0x%x\r\n", ppcb->stkbase);
+	//kprintf("name: %s\r\n",ppcb->name);
+	//kprintf("&procaddr: 0x%x\r\n", procaddr);
+	//kprintf("ppcb->stklen: %d\r\n", ppcb->stklen);
+	//kprintf("ppcb->stkbase: 0x%x\r\n", ppcb->stkbase);
 
 	/* Initialize stack with accounting block. */
 	*saddr   = STACKMAGIC;
@@ -85,8 +89,9 @@ syscall	create(void *procaddr, ulong ssize,
 		*saddr = 0;
 	}
 	
-	saddr[15] = procaddr;
-	kprintf("saddr[15] address: 0x%x, value: 0x%x\r\n", saddr+15, *(saddr+15));
+	saddr[15] = (ulong)procaddr;
+	saddr[14] = (ulong)INITRET;
+	//kprintf("saddr[15] address: 0x%x, value: 0x%x\r\n", saddr+15, *(saddr+15));
 
 	
 	// TODO:  Place arguments into activation record.
@@ -96,18 +101,13 @@ syscall	create(void *procaddr, ulong ssize,
 	va_start(ap, nargs);
 	for (i=0; i < nargs;i++)
 	{
-		//if (i < 4)
-		//{
-		//	saddr[i] = va_arg(ap,int);
-		//} else {
 			savargs[i]=va_arg(ap,int);
-		//}
 	}
 	va_end(ap);
 
 	
 	ppcb->stkptr = saddr;
-	kprintf("stkptr = 0x%x\r\n", saddr);
+	//kprintf("stkptr = 0x%x\r\n", saddr);
 
 	return pid;
 }

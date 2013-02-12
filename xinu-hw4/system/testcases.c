@@ -111,6 +111,15 @@ void testcases(void)
 				0x55555555, 0x66666666, 0x77777777, 0x88888888);
 		printpcb(pid);
 		// TODO: print out stack with extra args
+		kprintf("Stack:\r\n");
+		pcb *ppcb = &proctab[pid];
+		ulong *saddr = ppcb->stkbase;
+		int i;
+		for (i=0; i < ppcb->stklen/sizeof(ulong); i++)
+		{
+			kprintf("Addr: 0x%x:\tValue: 0x%x\r\n", saddr, *saddr);
+			saddr++;
+		}
 		// TODO: ready(pid, 0);
 		break;
 

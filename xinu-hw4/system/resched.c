@@ -36,13 +36,6 @@ syscall resched(void)
 	newproc = &proctab[ currpid ];
 	newproc->state = PRCURR;	/* mark it currently running	*/
 
-	kprintf("newproc->stkptr = 0x%x\r\n", newproc->stkptr);
-	ulong *foo = newproc->stkptr;
-	foo-=16;
-	int i;
-	for (i=0; i < 16; i++){
-	kprintf("foo[%d] 0x%x\r\n", i,foo[i]);
-	}
 	ctxsw(&oldproc->stkptr, &newproc->stkptr);
 
 	/* The OLD process returns here when resumed. */
