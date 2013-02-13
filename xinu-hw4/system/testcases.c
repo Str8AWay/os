@@ -47,6 +47,22 @@ void testbigargs(int a, int b, int c, int d, int e, int f, int g, int h)
 	kprintf("h = 0x%08X\r\n", h);
 }
 
+int fib(int n)
+{
+	kprintf("n = %d\r\n", n);
+	if (n <= 0)
+		return 0;
+	if (n == 1)
+		return 1;
+	resched();
+	return fib(n-1)+fib(n-2);
+}
+
+void printfib(int n)
+{
+	kprintf("fib(%d) = %d\r\n", n, fib(n));
+}
+
 void printpcb(int pid)
 {
 	pcb *ppcb = NULL;
@@ -92,7 +108,7 @@ void testcases(void)
 	kprintf("0) Test creation of one process\r\n");
 	kprintf("1) Test passing of many args\r\n");
 	kprintf("2) Create three processes and run them\r\n");
-	kprintf("3) Create 2 testbigargs processes and one maintest\r\n");
+	kprintf("3) Create 2 testbigargs processes, one maintest and a printfib\r\n");
 
 	kprintf("===TEST BEGIN===");
 
@@ -143,6 +159,7 @@ void testcases(void)
 		ready(create((void *)testbigargs, INITSTK, "Big args2", 10,
 					0x12345678, 0xABCDEF12, 0x11223344, 0x99999999, 
 					0x98765432, 0xFEDCBABC, 0xFF00FF00, 0xAAAAAAAA), 0);
+		ready(create((void *)printfib, INITSTK, "fib", 1, 10), 0);
 	}
 
 	kprintf("\r\n===TEST END===\r\n");

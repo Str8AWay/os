@@ -90,7 +90,7 @@ syscall	create(void *procaddr, ulong ssize,
 	}
 	
 	saddr[15] = (ulong)procaddr;
-	saddr[14] = (ulong)INITRET;
+	saddr[14] = (ulong)&userret;
 	//kprintf("saddr[15] address: 0x%x, value: 0x%x\r\n", saddr+15, *(saddr+15));
 
 	
