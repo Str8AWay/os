@@ -5,9 +5,9 @@
  * $Id: testcases.c 175 2008-01-30 01:18:27Z brylow $
  *
  * Modified by:
- *
+ * Kaleb Breault
  * and
- *
+ * Jason Laqua
  */
 /* Embedded XINU, Copyright (C) 2007.  All rights reserved. */
 
@@ -92,6 +92,7 @@ void testcases(void)
 	kprintf("0) Test creation of one process\r\n");
 	kprintf("1) Test passing of many args\r\n");
 	kprintf("2) Create three processes and run them\r\n");
+	kprintf("3) Create 2 testbigargs processes and one maintest\r\n");
 
 	kprintf("===TEST BEGIN===");
 
@@ -111,25 +112,37 @@ void testcases(void)
 				0x55555555, 0x66666666, 0x77777777, 0x88888888);
 		printpcb(pid);
 		// TODO: print out stack with extra args
-		kprintf("Stack:\r\n");
+		kprintf("\r\nStack:\r\n");
 		pcb *ppcb = &proctab[pid];
-		ulong *saddr = ppcb->stkbase;
+		ulong *saddr = ppcb->stkptr;
+		ulong stkhi = ((ulong)ppcb->stkbase) + ppcb->stklen;
 		int i;
-		for (i=0; i < ppcb->stklen/sizeof(ulong); i++)
+		for (i=0; i < (stkhi - ((ulong)ppcb->stkptr))/sizeof(ulong); i++)
 		{
-			kprintf("Addr: 0x%x:\tValue: 0x%x\r\n", saddr, *saddr);
+			kprintf("0x%08X:\t0x%08X\r\n", saddr, *saddr);
 			saddr++;
 		}
-		// TODO: ready(pid, 0);
+		// TODO: 
+		ready(pid, 0);
 		break;
 
-	default:
+	case	'2':
 		// Create three copies of a process, and let them play.
 		ready(create((void *)main, INITSTK, "MAIN1", 2, 0, NULL), 0);
 		ready(create((void *)main, INITSTK, "MAIN2", 2, 0, NULL), 0);
 		ready(create((void *)main, INITSTK, "MAIN3", 2, 0, NULL), 0);
 		while (numproc > 1) resched();
 		break;
+		
+	default:
+		// Create different processes
+		ready(create((void *)main, INITSTK, "MAIN", 2, 0, NULL), 0);
+		ready(create((void *)testbigargs, INITSTK, "Big args1", 8,
+					0x11111111, 0x22222222, 0x33333333, 0x44444444,
+					0x55555555, 0x66666666, 0x77777777, 0x88888888), 0);
+		ready(create((void *)testbigargs, INITSTK, "Big args2", 10,
+					0x12345678, 0xABCDEF12, 0x11223344, 0x99999999, 
+					0x98765432, 0xFEDCBABC, 0xFF00FF00, 0xAAAAAAAA), 0);
 	}
 
 	kprintf("\r\n===TEST END===\r\n");
