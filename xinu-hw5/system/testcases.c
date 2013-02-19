@@ -56,9 +56,9 @@ void testcases(void)
 		ready(create((void *)printpid, INITSTK, 2, "PRINTER-A", 1, 5), 0);
 		ready(create((void *)printpid, INITSTK, 5, "PRINTER-B", 1, 5), 0);
 		ready(create((void *)printpid, INITSTK, 10, "PRINTER-C", 1, 5), 0);
-		ready(create((void *)printpid, INITSTK, 5, "PRINTER-D", 1, 5), 0);
+		//ready(create((void *)printpid, INITSTK, 5, "PRINTER-D", 1, 5), 0);
 
-		ready(create((void *)bigargs, INITSTK, 20, "BIGARGS", 6, 10, 20, 30, 40, 50, 60), 0);
+		//ready(create((void *)bigargs, INITSTK, 20, "BIGARGS", 6, 10, 20, 30, 40, 50, 60), 0);
 		break;
 
 	default:

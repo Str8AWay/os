@@ -37,6 +37,7 @@ struct qentry
 {                       /**< one for each process plus two for each list */
 	short next;         /**< index of next process or tail               */
 	short prev;         /**< index of previous process or head           */
+	int key;			/**< key used to sort entry						 */
 };
 
 extern struct qentry queuetab[];

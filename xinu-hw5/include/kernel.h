@@ -67,11 +67,13 @@ irqmask restore(irqmask);
 irqmask enable(void);
 irqmask enable_irq(irqmask);
 
-syscall	create(void *, ulong, char *, ulong, ...);
+syscall	create(void *, ulong, int, char *, ulong, ...);
 syscall getpid(void);
 syscall kill(int);
 syscall ready(long, bool); 
 syscall resched(void);
 syscall	sleep(int n);
+
+void testcases(void);
 
 #endif /* _KERNEL_H_ */

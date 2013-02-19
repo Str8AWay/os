@@ -51,6 +51,7 @@ typedef struct pentry
 	void    *stkbase;       /**< base of run time stack                  */
 	int     stklen;         /**< stack length                            */
 	char    name[PNMLEN];   /**< process name                            */
+	int	priority;	/**< priority of process					 */
 } pcb;
 
 /* process initialization constants */

@@ -9,6 +9,7 @@
 #include <kernel.h>
 #include <proc.h>
 #include <queue.h>
+#include <prioritize.h>
 
 /**
  * Make a process eligible for CPU service.

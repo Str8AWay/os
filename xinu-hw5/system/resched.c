@@ -10,6 +10,7 @@
 #include <proc.h>
 #include <queue.h>
 #include <clock.h>
+#include <prioritize.h>
 
 extern void ctxsw(void *, void *);
 /**
@@ -23,13 +24,27 @@ syscall resched(void)
 	irqmask im;
 	pcb *oldproc;   /* pointer to old process entry */
 	pcb *newproc;   /* pointer to new process entry */
-	short head, tail;
+	//short head, tail;
 
 	im = disable();
 	oldproc = &proctab[ currpid ];
 
 	/* TODO: Add queue aging to the system.
+	 *
 	 */
+	int x=0;
+	for(;x<NQENT;x++)
+	{
+		//kprintf("key is %d\r\n", queuetab[x].key);
+	}
+	if(AGING)
+	{	//int x=0;
+		for(;x<NQENT;x++)
+		{
+			queuetab[x].key++;
+		}
+	}
+
 
 	/* place current process at end of ready queue */
 	if (PRCURR == oldproc->state) 

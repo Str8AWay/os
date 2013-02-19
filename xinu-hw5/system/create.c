@@ -15,6 +15,7 @@
 #include <stdarg.h>
 #include <mips.h>
 #include <string.h>
+#include <queue.h>
 
 local newpid(void);
 void userret(void);
@@ -26,9 +27,10 @@ void *getstk(ulong);
  * @param ssize stack stack size in words
  * @param name name of the process, used for debugging
  * @param nargs, number of arguments that follow
+ * @param priority, process priority 
  * @return the new process' process id
- */
-syscall	create(void *procaddr, ulong ssize,
+ */	
+syscall	create(void *procaddr, ulong ssize, int priority,
 			   char *name, ulong nargs, ...)
 {
 	ulong   *saddr;     /* stack address                */
@@ -53,11 +55,12 @@ syscall	create(void *procaddr, ulong ssize,
 	ppcb = &proctab[ pid ];
                                     /* setup PCB entry for new proc */
 	ppcb->state = PRSUSP;
-
+	queuetab[pid].key=priority;
 	// TODO: Setup PCB entry for new process.
 	strncpy(ppcb->name, name, sizeof(name)+1);
 	ppcb->stklen = ssize;
 	ppcb->stkbase = saddr - ssize/sizeof(ulong);
+	ppcb->priority = priority;
 	//kprintf("name: %s\r\n",ppcb->name);
 	//kprintf("&procaddr: 0x%x\r\n", procaddr);
 	//kprintf("ppcb->stklen: %d\r\n", ppcb->stklen);
