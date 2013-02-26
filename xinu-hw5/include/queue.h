@@ -2,6 +2,11 @@
  * @file queue.h 
  * @provides firstid, isempty, nonempty
  * 
+ * Modified By
+ * Kaleb Breault
+ * and 
+ * Jason Laqua
+ *
  * The process queue system allows a statically-allocated array to
  * model sorted process queueing before more complex operating system
  * services, like dynamic memory allocation, are up and running.
@@ -28,16 +33,16 @@
 
 #ifndef NQENT
 #define NQENT   NPROC   /**< one for each process                        */ \
-          + 2           /**< plus two for each list (ready list)         */
+          + 2          /**< plus two for each list (ready list)         */
 #endif
 
 typedef unsigned long queue;
 
 struct qentry
 {                       /**< one for each process plus two for each list */
+	ulong key;          /**< key on which queue is ordered               */
 	short next;         /**< index of next process or tail               */
 	short prev;         /**< index of previous process or head           */
-	int key;			/**< key used to sort entry						 */
 };
 
 extern struct qentry queuetab[];
@@ -62,5 +67,6 @@ short enqueue(short, queue);
 short remove(short);
 short dequeue(queue);
 queue newqueue(void);
+short prioritize(short pid, queue q, ulong key);
 
 #endif /* _QUEUE_H_ */

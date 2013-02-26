@@ -3,6 +3,10 @@
  * @provides isbadpid
  *
  * COSC 3250 / COEN 4830 Assignment 4
+ * Modified By
+ * Kaleb Breault
+ * and 
+ * Jason Laqua
  */
 /* Embedded XINU, Copyright (C) 2010.  All rights reserved. */
 
@@ -51,7 +55,7 @@ typedef struct pentry
 	void    *stkbase;       /**< base of run time stack                  */
 	int     stklen;         /**< stack length                            */
 	char    name[PNMLEN];   /**< process name                            */
-	int	priority;	/**< priority of process					 */
+	ulong	priority;	/**< priority of process					 */
 } pcb;
 
 /* process initialization constants */

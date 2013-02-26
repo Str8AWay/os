@@ -22,7 +22,8 @@ LDRS = start.S flushcache.S
 # System
 SYS = kprintf.c xtrap.c testcases.c main.c queue.c create.c ready.c \
       resched.c getstk.c kill.c \
-      clockinit.c clockintr.c prioritize.c
+      clockinit.c clockintr.c \
+	  prioritize.c
 
 SYSS = startup.S irq.S ctxsw.S \
        clockup.S interrupt.S

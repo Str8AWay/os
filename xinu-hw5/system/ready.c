@@ -3,13 +3,17 @@
  * @provides ready
  *
  * COSC 125 / COEN 183 Assignment 4
+ *
+ * Modified By
+ * Kaleb Breault
+ * and
+ * Jason Laqua
  */
 /* Embedded XINU, Copyright (C) 2008.  All rights reserved. */
 
 #include <kernel.h>
 #include <proc.h>
 #include <queue.h>
-#include <prioritize.h>
 
 /**
  * Make a process eligible for CPU service.
@@ -26,8 +30,8 @@ syscall ready(long pid, bool resch)
 	ppcb = &proctab[pid];
 	ppcb->state = PRREADY;
 
-	enqueue(pid, readylist);
-
+	prioritize(pid, readylist, ppcb->priority);
+	
 	if (resch) { resched(); }
 	return OK;
 }

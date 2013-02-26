@@ -48,8 +48,8 @@ typedef	char         bool;       /**< boolean type                         */
 
 /* Configuration information */
 #define RTCLOCK   TRUE          /**< now have RTC support                 */
-#define PREEMPT   FALSE         /**< preemptive rescheduling              */
-#define AGING     FALSE         /**< queue aging prevents starvation      */
+#define PREEMPT   TRUE         /**< preemptive rescheduling              */
+#define AGING     TRUE         /**< queue aging prevents starvation      */
 #define NPROC     50            /**< number of user processes             */
 #define NSEM      100           /**< number of semaphores                 */
 
@@ -67,13 +67,11 @@ irqmask restore(irqmask);
 irqmask enable(void);
 irqmask enable_irq(irqmask);
 
-syscall	create(void *, ulong, int, char *, ulong, ...);
+syscall	create(void *, ulong, ulong, char *, ulong, ...);
 syscall getpid(void);
 syscall kill(int);
 syscall ready(long, bool); 
 syscall resched(void);
 syscall	sleep(int n);
-
-void testcases(void);
 
 #endif /* _KERNEL_H_ */

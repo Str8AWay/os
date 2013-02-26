@@ -30,7 +30,7 @@ void *getstk(ulong);
  * @param priority, process priority 
  * @return the new process' process id
  */	
-syscall	create(void *procaddr, ulong ssize, int priority,
+syscall	create(void *procaddr, ulong ssize, ulong priority,
 			   char *name, ulong nargs, ...)
 {
 	ulong   *saddr;     /* stack address                */

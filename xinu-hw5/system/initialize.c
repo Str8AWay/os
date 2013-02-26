@@ -106,7 +106,6 @@ int nulluser()
 	/* TODO: This line won't compile properly until you have added
 	 *       a priority parameter to the create() function.
 	 */
-	testcases();
 	ready(create((void *)main, INITSTK, 1, "MAIN", 2, 0, NULL), 0);
 
 	/* enable interrupts here */
