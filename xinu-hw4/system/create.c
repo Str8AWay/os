@@ -55,7 +55,7 @@ syscall	create(void *procaddr, ulong ssize,
 	ppcb->state = PRSUSP;
 
 	// TODO: Setup PCB entry for new process.
-	strncpy(ppcb->name, name, sizeof(name)+1);
+	strncpy(ppcb->name, name, strlen(name));
 	ppcb->stklen = ssize;
 	ppcb->stkbase = saddr - ssize/sizeof(ulong);
 	//kprintf("name: %s\r\n",ppcb->name);
