@@ -16,10 +16,10 @@
 #include <mips.h>
 #include <string.h>
 #include <queue.h>
+#include <memory.h>
 
 local newpid(void);
 void userret(void);
-void *getstk(ulong);
 
 /**
  * Create a process to start running a procedure.
@@ -45,7 +45,8 @@ syscall	create(void *procaddr, ulong ssize, ulong priority,
 	if (ssize < MINSTK) ssize = MINSTK;
 	ssize = (ulong)(ssize + 3) & 0xFFFFFFFC;  
                                     /* round up to even boundary    */
-	saddr = (ulong *)getstk(ssize); /* allocate new stack and pid   */
+	saddr = (ulong *)getmem(ssize); /* allocate new stack and pid   */
+	saddr += ssize/sizeof(ulong)-1;
 	pid   = newpid();
 	                                /* a little error checking      */ 
 	if ( (((ulong *)SYSERR) == saddr) || (SYSERR == pid) )

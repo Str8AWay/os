@@ -23,13 +23,21 @@
  */
 syscall	freemem(void *pmem, ulong nbytes)
 {
+	ulong im = disable();
+
 	// Insert back into free list, and compact with adjacent blocks.
 	if ((0 >= nbytes) || (pmem == NULL))
+	{
+		restore(im);
 		return SYSERR;
+	}
 	
 	memblk *newblock = (memblk *)pmem;
-	if (((void *)newblock < minheap) || ((void *)newblock > platform.maxaddr))//|| ((void *)(newblock + nbytes/8) > platform.maxaddr))
+	if (((void *)newblock < minheap) || ((void *)newblock > platform.maxaddr) || ((void *)(newblock + nbytes/8) > platform.maxaddr))
+	{
+		restore(im);
 		return SYSERR;
+	}
 	
 	nbytes = (ulong)roundmb(nbytes);
 
@@ -63,5 +71,6 @@ syscall	freemem(void *pmem, ulong nbytes)
 		}
 	}
 	freelist.length += nbytes;
+	restore(im);
 	return OK;
 }

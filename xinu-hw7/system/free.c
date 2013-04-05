@@ -21,6 +21,7 @@
  */
 syscall	free(void *pmem)
 {
+	ulong im = disable();
 	memblk *block;
 
 	// TODO: Perform some sanity checks to see if pmem is feasible and
@@ -31,13 +32,22 @@ syscall	free(void *pmem)
 	//       4) is accounting block mlen field nonzero?
 	//       Call freemem() to put back into free list.
 	if ((void *)SYSERR == pmem)
+	{
+		restore(im);
 		return SYSERR;
+	}
 	block = (memblk *)pmem;
 	block--;
 	if (((void *)block < minheap) || ((void *)(block + block->length/8) > platform.maxaddr))
+	{
+		restore(im);
 		return SYSERR;
+	}
 	if ((block->next != block) || (block->length == 0))
+	{
+		restore(im);
 		return SYSERR;
-		
+	}
+	restore(im);
 	return freemem(block,block->length+8);
 }

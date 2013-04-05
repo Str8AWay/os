@@ -20,12 +20,16 @@
  */
 void *getmem(ulong nbytes)
 {
+	ulong im = disable();
 	// Search free list for first chunk large enough to fit.
 	// Break off region of requested size; return pointer
 	// to new memory region, and add any remaining chunk
 	// back into the free list.
 	if (0 >= nbytes)
+	{
+		restore(im);
 		return (void *)SYSERR;
+	}
 	
 	nbytes = (ulong)roundmb(nbytes);
 
@@ -34,7 +38,10 @@ void *getmem(ulong nbytes)
 	while(TRUE)
 	{
 		if (curr == NULL)
+		{
+			restore(im);
 			return (void *)SYSERR;
+		}
 		if (curr->length < nbytes)
 		{
 			prev = curr;
@@ -48,7 +55,6 @@ void *getmem(ulong nbytes)
 			newblock->length = curr->length - nbytes;
 			if (newblock->length <= 0)
 				newblock = curr->next;
-				//newblock = NULL;
 			if (NULL == prev)
 			{
 				freelist.next = newblock;
@@ -56,6 +62,7 @@ void *getmem(ulong nbytes)
 				prev->next = newblock;
 			}
 			freelist.length -= nbytes;
+			restore(im);
 			return curr;
 		}
 	}

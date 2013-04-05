@@ -10,6 +10,7 @@
 #include <kernel.h>
 #include <proc.h>
 #include <queue.h>
+#include <memory.h>
 
 /*
  * kill  --  kill a process and remove it from the system
@@ -30,6 +31,9 @@ syscall	kill(int pid)
 	ppcb = &proctab[pid];
 
 	--numproc;
+	
+	// free process stack memory
+	freemem(ppcb->stkbase,ppcb->stklen);
 
 	switch (ppcb->state)
 	{

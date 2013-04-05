@@ -248,12 +248,12 @@ void testcases(void)
 	kprintf("Test 5: Get all of memory in 8 byte chunks, free in 8 byte chunks, get all of memory in 1 big chunk, free all of memory in 1 big chunk\r\n");
 	kprintf("Test 6: Testing malloc and free\r\n");
 	kprintf("Test 7: Grab 4 chunks of freelist.length/4\r\n");
+	kprintf("Test 8: Test malloc and free with malloc 2 32 byte chunks and free 1 chunk and repeat\r\n");
+	kprintf("Test 9: Test compaction\r\n");
+	kprintf("Test A: Get all of memory in 8 byte chunks, free in 8 byte chunks, get all of memory in 1 big chunk, free all of memory in 1 big chunk\r\n");
 	kprintf("===TEST BEGIN===\r\n");
 	mutexRelease();
 	// TODO: Test your operating system!
-	ulong arraySize = freelist.length/12;
-	ulong* tempArray[arraySize];
-	int bignum = 1000;
 	while('Q' != (c = kgetc()))
 	{
 	switch(c)
@@ -298,28 +298,20 @@ void testcases(void)
 		break;
 	case '5':
 		kprintf("Test 5: Get all of memory in 8 byte chunks, free in 8 byte chunks, get all of memory in 1 big chunk, free all of memory in 1 big chunk\r\n");
-		int i;
+		kprintf("Starting getting memory\r\n");
+		ulong *first = getmem(8);
+		while ((void *)SYSERR != getmem(8)) {
+			if (freelist.length < 100)
+				printFreelist();
+		}
+		kprintf("Finished getting memory\r\n");
+		printFreelist();
 		
-		for (i = 0; i < arraySize; i++)
-		{
-			if (freelist.length < 8500000 && i % 256 == 0)
-				//printFreelist();
-				//kprintf("%d\r\n", i);
-				kprintf("%d\r\n", freelist.length);
-			void *dummy = getmem(8);
-			if (dummy != (void *)SYSERR)
-				tempArray[i] = dummy;	
+		while (SYSERR != freemem(first+=8/4,8)) {
+			if (freelist.length > 16647000)
+				printFreelist();
 		}
-		printFreelist();
-		for (i = 0; i < arraySize; i++)
-		{
-			if (i % 1024 == 0)
-				//printFreelist();
-				//kprintf("%d\r\n", i);
-				kprintf("%d\r\n", freelist.length);
-			freemem((ulong *)tempArray[i],8);
-		}
-		printFreelist();
+		kprintf("Finished freeing memory\r\n");
 
 	case 'b':
 		kprintf("Test 5b: Get all of memory in 1 big chunk, free all of memory in 1 big chunk twice\r\n");
@@ -374,7 +366,8 @@ void testcases(void)
 	case '8':
 		kprintf("Test 8: Test malloc and free with malloc 2 32 byte chunks and free 1 chunk and repeat\r\n");
 		ulong *pointera;
-		for (i = 0; i < bignum; i++)
+		int i;
+		for (i = 0; i < 1000; i++)
 		{
 			pointera = malloc(32);
 			malloc(32);
@@ -382,6 +375,40 @@ void testcases(void)
 				free(pointera);
 			printFreelist();
 		}
+	case '9':
+		kprintf("Test 9: Test compaction\r\n");
+		printFreelist();
+		ulong *ptra = (ulong *)malloc(32);
+		printFreelist();
+		ulong *ptrb = (ulong *)malloc(32);
+		printFreelist();
+		ulong *ptrc = (ulong *)malloc(32);
+		printFreelist();
+		free(ptra);
+		printFreelist();
+		free(ptrc);
+		printFreelist();
+		free(ptrb);
+		printFreelist();
+		break;
+		
+	case 'A':
+		kprintf("Test A: Get all of memory in 8 byte chunks, free in 8 byte chunks, get all of memory in 1 big chunk, free all of memory in 1 big chunk\r\n");
+		kprintf("Starting getting memory\r\n");
+		ulong *firstmalloc = malloc(8);
+		while ((void *)SYSERR != malloc(8)) {
+			if (freelist.length < 100)
+				printFreelist();
+		}
+		kprintf("Finished getting memory\r\n");
+		printFreelist();
+		
+		while (SYSERR != free(firstmalloc+=8/2)) {
+			if (freelist.length > 16647000)
+				printFreelist();
+		}
+		kprintf("Finished freeing memory\r\n");
+
 	default:
 		break;
 	}

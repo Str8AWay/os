@@ -26,11 +26,18 @@ void *malloc(ulong nbytes)
 	// Store accounting block at head of region, including size
 	// of request.  Return pointer to space above accounting
 	// block.
-	
+
+	ulong im = disable();
+		
 	memblk *chunk = (memblk *)getmem(nbytes+8);
+	if ((void *)SYSERR == chunk)
+	{
+		restore(im);
+		return (void *)SYSERR;
+	}
 	chunk->next = chunk;
 	chunk->length = nbytes;
-	return (void *)(++chunk);
 
-	return (void *)SYSERR;
+	restore(im);
+	return (void *)(++chunk);
 }
