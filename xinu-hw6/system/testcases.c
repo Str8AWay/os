@@ -80,21 +80,18 @@ int insert_item(struct boundedbuffer *bb, buffer_item item)
 	/* insert item into buffer
 	 * return 0 if successful, otherwise
 	 * return SYSERR indicating an error condition */
-	int im = disable();
 	
 	/*mutexAcquire();
 	kprintf("wait full\r\n");
 	mutexRelease();*/
 	if (wait(bb->full)!=OK)
     {   
-    	restore(im);
         return SYSERR;
     }
 	//kprintf("I wait mutex\r\n");
 
 	if (wait(bb->mutex)!=OK)
     {   
-    	restore(im);
         return SYSERR;
     }
 	
@@ -103,7 +100,6 @@ int insert_item(struct boundedbuffer *bb, buffer_item item)
 	//kprintf("I signal mutex\r\n");
 		if (signal(bb->empty)!=OK)
     {   
-    	restore(im);
         return SYSERR;
     }
     /*mutexAcquire();
@@ -112,11 +108,9 @@ int insert_item(struct boundedbuffer *bb, buffer_item item)
 
 	if (signal(bb->mutex)!=OK)
     {   
-    	restore(im);
         return SYSERR;
     }
     
-	restore(im);
 	return 0;
 }
 
@@ -127,20 +121,17 @@ int remove_item(struct boundedbuffer *bb, buffer_item *item)
 	 * placing it in item
 	 * return 0 if successful, otherwise
 	 * return SYSERR indicating an error condition */
-	int im = disable();
 	
 	/*mutexAcquire();	
 	kprintf("\t\t\twait empty\r\n");
 	mutexRelease();*/
 	if (wait(bb->empty)!=OK)
     {   
-    	restore(im);
         return SYSERR;
     }
 	//kprintf("R wait mutex\r\n");
 		if (wait(bb->mutex)!=OK)
     {   
-    	restore(im);
         return SYSERR;
     }
 	
@@ -151,20 +142,17 @@ int remove_item(struct boundedbuffer *bb, buffer_item *item)
 	mutexRelease();*/
 	if (signal(bb->full)!=OK)
     {   
-    	restore(im);
         return SYSERR;
     }
 //		kprintf("R signal mutex\r\n");
 
 	if (signal(bb->mutex)!=OK)
     {   
- 	  	restore(im);
         return SYSERR;
     }
 	
 	
 	
-	restore(im);
 	return 0;
 }
 
