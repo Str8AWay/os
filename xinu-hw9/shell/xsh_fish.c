@@ -2,6 +2,10 @@
  * @file     xsh_fish.c
  * @provides xsh_fish
  *
+ * Modified by
+ * Jason Laqua
+ * and 
+ * Kaleb Breault
  */
 /* Embedded XINU, Copyright (C) 2013.  All rights reserved. */
 
@@ -77,13 +81,20 @@ static int fishSendPayload(uchar *dst, char fishtype, char *payload)
 		
 	*ppkt++ = fishtype;
 	
-	memcpy(ppkt++, payload, strlen(payload));
+	memcpy(ppkt, payload, FNAMLEN);
+	ppkt += FNAMLEN;
 		
 	for (i = 1; i < ETHER_MINPAYLOAD; i++)
 	{
-		*ppkt++ = i;
+		*ppkt++ = 0;
 	}
-		
+	
+/*	printf("packet contents:");
+	for (i = 0; i < ppkt - packet; i++)
+	{
+		printf("outgoingPacket[%d]: 0x%02X %c\n", i, packet[i], packet[i]);
+	}
+*/		
 	write(ETH0, packet, ppkt - packet);
 	
 	return OK;
@@ -141,19 +152,28 @@ command xsh_fish(ushort nargs, char *args[])
 			return OK;
 		}
 		
+		bzero(fishlist, sizeof(fishlist));
+		int filesFound = 0;
+		
 		fishSend(school[i].mac, FISH_DIRASK);
 		
 		sleep(1000);
+		
+		char temp[FNAMLEN+1];
+		bzero(temp, FNAMLEN+1);
 		
 		printf("Files on %s:\n", args[2]);
 		for (i = 0; i < DIRENTRIES; i++)
 		{
 			//printf("i = %d fishlist[i] length: %d\n", i, strlen(fishlist[i]));
-			if ((fishlist[i] != NULL) && (strlen(fishlist[i]) != 0))
+			if ((fishlist[i][0] != '\0') && (strnlen(fishlist[i], FNAMLEN) != 0))
 			{
-				printf("\t%s\n",fishlist[i]);
+				strncpy(temp,fishlist[i],FNAMLEN);
+				printf("\t%s\n",temp);
+				filesFound++;
 			}
 		}
+		printf("%d files found\n", filesFound);
 				
 		return OK;
 	}

@@ -1,5 +1,6 @@
 /* fileSharer.c - fileSharer */
 /* Copyright (C) 2007, Marquette University.  All rights reserved. */
+/* Modified by Jason Laqua and Kaleb Breault */
 
 #include <kernel.h>
 #include <xc.h>
@@ -74,26 +75,46 @@ void fishDirAsk(uchar *packet)
 	memcpy(eg->src, myMAC, ETH_ADDR_LEN);
 	/* Zero out payload. */
 	bzero(eg->data, ETHER_MINPAYLOAD);
-	
+	/* adjust ppkt to current location */
+	ppkt += ETHER_SIZE;
 	/* FISH type becomes DIRLIST */
 	eg->data[0] = FISH_DIRLIST;
+	/* adjust ppkt to current location */
+	ppkt++;
 	
 	int i;
+	int j;
     for (i = 0; i < DIRENTRIES; i++)
 	{
-		if (filetab[i].fn_state)
+		ppkt += FNAMLEN;
+		if (supertab->sb_dirlst->db_fnodes[i].fn_state)
 		{
-			printf("%s\n", supertab->sb_dirlst->db_fnodes[i].fn_name);
+			//printf("%s\n", supertab->sb_dirlst->db_fnodes[i].fn_name);
 			strncpy(&eg->data[i*FNAMLEN+1], supertab->sb_dirlst->db_fnodes[i].fn_name, FNAMLEN);
 		}
 		else
 		{
-			eg->data[i*FNAMLEN+1] = 0;
+			for (j = 0; j < FNAMLEN; j++)
+				eg->data[i*FNAMLEN+1+j] = 0;
 		}
 		//printf("eg->data = %s\n", i*FNAMLEN+1, eg->data[i*FNAMLEN+1]);
 	}
 
-	write(ETH0, packet, ETHER_SIZE + ETHER_MINPAYLOAD);
+	int packetSize = 0;
+	if ((ppkt - packet) > (ETHER_SIZE + ETHER_MINPAYLOAD))
+		packetSize = ppkt - packet;
+	else
+		packetSize = ETHER_SIZE + ETHER_MINPAYLOAD;
+
+/*	printf("ppkt-packet = %d\n", ppkt-packet);
+
+	printf("Packet (%d bytes):\n", packetSize);
+    for (i = 0; i < packetSize; i++)
+    {
+		printf("packet[%d] = 0x%02X %c\n", i, packet[i], packet[i]);
+    }
+*/
+	write(ETH0, packet, packetSize);
 }
 
 int fishDirList(uchar *packet)
@@ -111,14 +132,104 @@ int fishDirList(uchar *packet)
 
 void fishGetFile(uchar *packet)
 {
+	uchar *ppkt = packet;
+	struct ethergram *eg = (struct ethergram *)packet;
+	
+	/* Source of request becomes destination of reply. */
+	memcpy(eg->dst, eg->src, ETH_ADDR_LEN);
+	/* Source of reply becomes me. */
+	memcpy(eg->src, myMAC, ETH_ADDR_LEN);
+	/* Zero out payload. */
+	bzero(&eg->data[1+FNAMLEN], ETHER_MINPAYLOAD);
+	
+	int fileFound = 0;
+	int i;
+	for (i = 0; i < DIRENTRIES; i++)
+	{
+		if (supertab->sb_dirlst->db_fnodes[i].fn_state)
+		{
+			if (strncmp(supertab->sb_dirlst->db_fnodes[i].fn_name, &eg->data[1], FNAMLEN) == 0)
+			{
+				fileFound = 1;
+				break;
+			}
+		}
+	}
+	int payloadSize = 0;
+	if (fileFound)
+	{
+		/* FISH type becomes HAVEFILE */
+		eg->data[0] = FISH_HAVEFILE;
+		payloadSize = DISKBLOCKLEN + FNAMLEN + 1;
+
+		int fd = fileOpen(&eg->data[1]);
+		int i = 1+FNAMLEN;
+		char temp;
+		while (i < payloadSize)
+		{
+			if ((temp = fileGetChar(fd)) != SYSERR)
+			{
+				eg->data[i] = temp;
+			}
+			else 
+			{
+				eg->data[i] = 0;
+			}
+			i++;
+		}
+		fileClose(fd);
+	}
+	else
+	{
+		/* FISH type becomes NOFILE */
+		eg->data[0] = FISH_NOFILE;
+		payloadSize = ETHER_MINPAYLOAD;
+		
+	}
+	write(ETH0, packet, ETHER_SIZE + payloadSize);
 }
 
 void fishHaveFile(uchar *packet)
 {
+	struct ethergram *eg = (struct ethergram *)packet;
+	int packetSize = ETHER_SIZE + DISKBLOCKLEN + FNAMLEN + 1;
+//	printf("Packet (%d bytes):\n", packetSize);
+	int i;
+/*    for (i = 0; i < packetSize; i++)
+    {
+		printf("fileHavePacket[%d] = 0x%02X %c\n", i, packet[i], packet[i]);
+    }
+*/
+    int fd;
+    char temp[FNAMLEN+1];
+	bzero(temp, FNAMLEN+1);
+	strncpy(temp,&eg->data[1],FNAMLEN);
+	if ((fd = fileOpen(temp)) != SYSERR)
+	{
+		if (fileDelete(fd) == SYSERR)
+		{
+			printf("Unable to overwrite file\n");
+			return;
+		}
+	}
+    if ((fd = fileCreate(temp)) != SYSERR)
+    {
+    	for (i = 1+FNAMLEN; i < DISKBLOCKLEN + FNAMLEN + 1; i++)
+    	{
+    		filePutChar(fd, eg->data[i]);
+    	}
+    	fileClose(fd);
+    	printf("File Created\n");
+    }
+    else
+    {
+    	printf("Unable to make file\n");
+    }
 }
 
 void fishNoFile(uchar *packet)
 {
+	printf("File Does Not Exist\n");
 }
 
 
@@ -158,9 +269,6 @@ int fileSharer(int dev)
 			case FISH_PING:
 				fishPing(packet);
 				break;
-
-		// TODO: All of the cases below.
-
 			case FISH_DIRASK:
 				fishDirAsk(packet);
 				break;
