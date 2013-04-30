@@ -99,6 +99,66 @@ static int fishSendPayload(uchar *dst, char fishtype, char *payload)
 	
 	return OK;
 }
+
+static int fishSendFilePayload(uchar *dst, char fishtype, char *payload)
+{
+	uchar packet[PKTSZ];
+	uchar *ppkt = packet;
+	struct ethergram *eg = (struct ethergram *)packet;
+	int i = 0;
+
+	// Zero out the packet buffer.
+	bzero(packet, PKTSZ);
+
+	for (i = 0; i < ETH_ADDR_LEN; i++)
+	{
+		*ppkt++ = dst[i];
+	}
+
+	// Source: Get my MAC address from the Ethernet device
+	control(ETH0, ETH_CTRL_GET_MAC, (long)ppkt, 0);
+	ppkt += ETH_ADDR_LEN;
+		
+	// Type: Special "3250" packet protocol.
+	*ppkt++ = ETYPE_FISH >> 8;
+	*ppkt++ = ETYPE_FISH & 0xFF;
+		
+	*ppkt++ = fishtype;
+	
+	memcpy(ppkt, payload, FNAMLEN);
+	ppkt += FNAMLEN;
+			
+	/* FISH type becomes HAVEFILE */
+	eg->data[0] = FISH_HAVEFILE;
+	
+	int payloadSize = DISKBLOCKLEN + FNAMLEN + 1;
+	int fd = fileOpen(payload);
+	i = 1+FNAMLEN;
+	char temp;
+	while (i < payloadSize)
+	{
+		if ((temp = fileGetChar(fd)) != SYSERR)
+		{
+			eg->data[i] = temp;
+		}
+		else 
+		{
+			eg->data[i] = 0;
+		}
+		i++;
+	}
+	fileClose(fd);
+	
+/*	printf("packet contents:");
+	for (i = 0; i < ppkt - packet; i++)
+	{
+		printf("outgoingPacket[%d]: 0x%02X %c\n", i, packet[i], packet[i]);
+	}
+*/		
+	write(ETH0, packet, ETHER_SIZE + FNAMLEN + DISKBLOCKLEN + 1);
+	
+	return OK;
+}
 		
 /**
  * Shell command (fish) is file sharing client.
@@ -198,6 +258,31 @@ command xsh_fish(ushort nargs, char *args[])
 		fishSendPayload(school[i].mac, FISH_GETFILE, args[3]);
 		
 		return OK;
+	}
+	else if (nargs == 4 && strncmp(args[1], "send", 5) == 0)
+	{
+		//	Send file to target node in school
+		int i;
+		for (i = 0; i < SCHOOLMAX; i++)
+		{
+			if (strncmp(school[i].name, args[2], FISH_MAXNAME) == 0)
+				break;
+		}
+		if (i == SCHOOLMAX)
+		{
+			printf("No FiSh \"%s\" found in school.\n", args[2]);
+			return OK;
+		}
+		int fd;
+		if ((fd = fileOpen(args[3])) == SYSERR)
+		{
+			printf("File \"%s\" does not exist.\n", args[3]);
+			return OK;
+		}
+		fishSendFilePayload(school[i].mac, FISH_GETFILE, args[3]);
+		
+		return OK;
+		
 	}
 	else
     {
